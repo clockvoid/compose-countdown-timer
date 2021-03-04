@@ -64,11 +64,13 @@ fun NumKeyPad(onClick: (Int) -> Unit) {
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 row.forEach { num ->
-                    Text(text = "$num",
+                    Text(
+                        text = "$num",
                         fontSize = 64.sp,
                         modifier = Modifier.clickable {
                             onClick(num)
-                        })
+                        }
+                    )
                 }
             }
         }
@@ -98,12 +100,17 @@ fun CountdownTimer(viewModel: MainViewModel) {
         ) {
             Crossfade(targetState = timerSec.value) { sec ->
                 Crossfade(targetState = timerMin.value) { min ->
-                    Text(text = "${min / 10}${min - min / 10 * 10}m${sec / 10}${sec - sec / 10 * 10}s", fontSize = 64.sp)
+                    Text(
+                        text = "${min / 10}${min - min / 10 * 10}m${sec / 10}${sec - sec / 10 * 10}s",
+                        fontSize = 64.sp
+                    )
                 }
             }
-            NumKeyPad(onClick = {
-                viewModel.setTimerInSec(it)
-            })
+            NumKeyPad(
+                onClick = {
+                    viewModel.setTimerInSec(it)
+                }
+            )
             Row {
                 Button(
                     onClick = { viewModel.resetTimer() },
