@@ -17,30 +17,109 @@ package com.example.androiddevchallenge
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedback
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.androiddevchallenge.ui.theme.MyTheme
 
 class MainActivity : AppCompatActivity() {
+    private val viewModel: MainViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MyTheme {
-                MyApp()
+                CountdownTimer(viewModel)
             }
+        }
+    }
+}
+
+@Composable
+fun NumKeyPad(onClick: (Int) -> Unit) {
+    val rows = ((1..9) + listOf(0)).chunked(3)
+
+    Column {
+        rows.forEach { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                row.forEach { num ->
+                    Text(text = "$num",
+                        fontSize = 64.sp,
+                        modifier = Modifier.clickable {
+                            onClick(num)
+                        })
+                }
+            }
+        }
+    }
+}
+
+@Preview("Num Key Pad", widthDp = 360, heightDp = 640)
+@Composable
+fun NumKeyPadPreview() {
+    MyTheme {
+        Surface(color = MaterialTheme.colors.background) {
+            NumKeyPad(onClick = { /*TODO*/ })
         }
     }
 }
 
 // Start building your app here!
 @Composable
-fun MyApp() {
+fun CountdownTimer(viewModel: MainViewModel) {
+    val timerSec: State<Int> = viewModel.timerSec.collectAsState()
+    val timerMin: State<Int> = viewModel.timerMin.collectAsState()
+    val timerState: State<TimerState> = viewModel.timerState.collectAsState()
+
     Surface(color = MaterialTheme.colors.background) {
-        Text(text = "Ready... Set... GO!")
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Crossfade(targetState = timerSec.value) { sec ->
+                Crossfade(targetState = timerMin.value) { min ->
+                    Text(text = "${min / 10}${min - min / 10 * 10}m${sec / 10}${sec - sec / 10 * 10}s", fontSize = 64.sp)
+                }
+            }
+            NumKeyPad(onClick = {
+                viewModel.setTimerInSec(it)
+            })
+            Row {
+                Button(
+                    onClick = { viewModel.resetTimer() },
+                    enabled = timerState.value != TimerState.PREPARE,
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text(text = "reset/stop")
+                }
+
+                Button(
+                    onClick = { viewModel.countDownTimer() },
+                    enabled = timerState.value == TimerState.READY,
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Text(text = "start")
+                }
+            }
+        }
     }
 }
 
@@ -48,7 +127,7 @@ fun MyApp() {
 @Composable
 fun LightPreview() {
     MyTheme {
-        MyApp()
+        CountdownTimer(MainViewModel())
     }
 }
 
@@ -56,6 +135,6 @@ fun LightPreview() {
 @Composable
 fun DarkPreview() {
     MyTheme(darkTheme = true) {
-        MyApp()
+        CountdownTimer(MainViewModel())
     }
 }
