@@ -19,7 +19,9 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +48,7 @@ import com.example.androiddevchallenge.ui.theme.MyTheme
 class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels()
 
+    @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -94,6 +97,7 @@ fun NumKeyPadPreview() {
 }
 
 // Start building your app here!
+@ExperimentalAnimationApi
 @Composable
 fun CountdownTimer(viewModel: MainViewModel) {
     val timerSec: State<Int> = viewModel.timerSec.collectAsState()
@@ -102,21 +106,28 @@ fun CountdownTimer(viewModel: MainViewModel) {
 
     Surface(color = MaterialTheme.colors.background) {
         Column(
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Crossfade(targetState = timerSec.value) { sec ->
-                Crossfade(targetState = timerMin.value) { min ->
-                    Text(
-                        text = "${min / 10}${min - min / 10 * 10}m${sec / 10}${sec - sec / 10 * 10}s",
-                        fontSize = 64.sp
-                    )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Crossfade(targetState = timerSec.value) { sec ->
+                    Crossfade(targetState = timerMin.value) { min ->
+                        Text(
+                            text = "${min / 10}${min - min / 10 * 10}m${sec / 10}${sec - sec / 10 * 10}s",
+                            fontSize = 64.sp
+                        )
+                    }
                 }
             }
-            NumKeyPad(
-                onClick = {
-                    viewModel.setTimerInSec(it)
-                }
-            )
+            AnimatedVisibility(visible = timerState.value != TimerState.STARTED) {
+                NumKeyPad(
+                    onClick = {
+                        viewModel.setTimerInSec(it)
+                    }
+                )
+            }
             Row {
                 Button(
                     onClick = { viewModel.resetTimer() },
@@ -138,6 +149,7 @@ fun CountdownTimer(viewModel: MainViewModel) {
     }
 }
 
+@ExperimentalAnimationApi
 @Preview("Light Theme", widthDp = 360, heightDp = 640)
 @Composable
 fun LightPreview() {
@@ -146,6 +158,7 @@ fun LightPreview() {
     }
 }
 
+@ExperimentalAnimationApi
 @Preview("Dark Theme", widthDp = 360, heightDp = 640)
 @Composable
 fun DarkPreview() {
